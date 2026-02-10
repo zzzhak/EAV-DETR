@@ -1,0 +1,52 @@
+task: codrone_detection
+num_classes: 12
+remap_mscoco_category: False
+use_difficult: False
+
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: CODroneDetection
+    img_folder: ./dataset/CODrone1024/train1024/images/
+    ann_folder: ./dataset/CODrone1024/train1024/labelTxt/
+    split: train
+    patch_size: 1024
+    debug_mode: False
+    max_samples: null
+    use_difficult: False
+  shuffle: True
+  batch_size: 10
+  num_workers: 12
+  drop_last: True
+  collate_fn: default_collate_fn
+
+val_dataloader:
+  type: DataLoader
+  dataset:
+    type: CODroneDetection
+    img_folder: ./dataset/CODrone1024/val1024/images/
+    ann_folder: ./dataset/CODrone1024/val1024/labelTxt/
+    split: val
+    patch_size: 1024
+    debug_mode: False
+    max_samples: null
+    use_difficult: False
+  shuffle: False
+  batch_size: 1
+  num_workers: 1
+  collate_fn: default_collate_fn
+
+test_dataloader:
+  type: DataLoader
+  dataset:
+    type: CODroneDetection
+    img_folder: ./dataset/CODrone1024/test1024/images/
+    ann_folder: ./dataset/CODrone1024/test1024/labelTxt/
+    split: test
+    patch_size: 1024
+    use_difficult: False
+  shuffle: False
+  batch_size: 1
+  num_workers: 1
+  drop_last: False
+  collate_fn: default_collate_fn 

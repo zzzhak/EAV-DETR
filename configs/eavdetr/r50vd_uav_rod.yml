@@ -1,0 +1,101 @@
+__include__: [
+  '../dataset/uav_rod_detection.yml',
+  '../runtime.yml',
+]
+num_classes: 1
+task: uav_rod_detection_oriented
+model: RTDETR
+criterion: SetCriterion
+postprocessor: RTDETRPostProcessor
+
+RTDETR: 
+  backbone: PResNet
+  encoder: HybridEncoder
+  decoder: RTDETRTransformer
+  # multi_scale: [480, 512, 544, 576, 608, 640, 640, 640, 672, 704, 736, 768, 800]
+
+PResNet:
+  depth: 50
+  variant: d
+  freeze_at: 0
+  return_idx: [1, 2, 3]
+  num_stages: 4
+  freeze_norm: True
+  pretrained: True 
+
+HybridEncoder:
+  in_channels: [512, 1024, 2048]
+  feat_strides: [8, 16, 32]
+
+  # intra
+  hidden_dim: 256
+  use_encoder_idx: [2]
+  num_encoder_layers: 1
+  nhead: 8
+  dim_feedforward: 1024
+  dropout: 0.
+  enc_act: 'gelu'
+  pe_temperature: 10000
+  
+  # cross
+  expansion: 1.0
+  depth_mult: 1
+  act: 'silu'
+  eval_spatial_size: [1024, 1024]
+  use_aux_head: True
+
+RTDETRTransformer:
+  feat_channels: [256, 256, 256]
+  feat_strides: [8, 16, 32]
+  hidden_dim: 256
+  num_levels: 3
+  num_queries: 300
+  num_decoder_layers: 6
+  num_denoising: 100
+  eval_idx: -1
+  eval_spatial_size: [1024, 1024]
+use_focal_loss: True
+
+RTDETRPostProcessor:
+  num_top_queries: 300
+
+SetCriterion:
+  weight_dict: {loss_vfl: 1, loss_bbox: 5, loss_oriented_iou: 2, loss_encoder_aux: 1,}
+  losses: ['vfl', 'boxes']
+  alpha: 0.75
+  gamma: 2.0
+  spatial_loss_weight: 1.0
+  angle_loss_weight: 1.0
+  encoder_aux_loss_weight: 0.5
+  matcher:
+    type: HungarianMatcher
+    weight_dict: {cost_class: 1, cost_bbox: 5, cost_giou: 2}
+    alpha: 0.25
+    gamma: 2.0
+    spatial_loss_weight: 1.0
+    angle_loss_weight: 1.0
+output_dir: ./outputs/uav_rod
+epoches: 50
+snapshot_epoch: 25
+clip_max_norm: 0.1
+
+optimizer:
+  type: AdamW
+  params: 
+    - 
+      params: 'backbone'
+      lr: 0.00001
+    - 
+      params: '^(?=.*encoder(?=.*bias|.*norm.*weight)).*$'
+      weight_decay: 0.
+    -
+      params: '^(?=.*decoder(?=.*bias|.*norm.*weight)).*$'
+      weight_decay: 0.
+  lr: 0.0001
+  betas: [0.9, 0.999]
+  weight_decay: 0.00005
+
+lr_scheduler:
+  type: CosineAnnealingLR
+  T_max: 50
+  eta_min: 0.000001

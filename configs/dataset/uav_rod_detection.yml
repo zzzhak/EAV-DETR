@@ -1,0 +1,52 @@
+task: uav_rod_detection_oriented
+
+num_classes: 1
+remap_mscoco_category: False
+
+train_dataloader:
+  type: DataLoader
+  dataset:
+    type: UAVRODDetection
+    img_folder: ./dataset/UAV-ROD/train/images/
+    ann_folder: ./dataset/UAV-ROD/train/annotations/
+    split: train
+    img_size: 1024
+    augment: True
+    hyp:
+      mosaic: 1.0
+      mixup: 0.0
+      hsv_h: 0.015
+      hsv_s: 0.7
+      hsv_v: 0.4
+      translate: 0.1
+      scale: 0.5
+      flipud: 0.5
+      fliplr: 0.5
+    debug_mode: False
+    max_samples: null
+    cache_images: False
+  shuffle: True
+  batch_size: 4
+  num_workers: 1
+  drop_last: True
+  collate_fn: default_collate_fn
+
+test_dataloader:
+  type: DataLoader
+  dataset:
+    type: UAVRODDetectionTest
+    img_folder: ./dataset/UAV-ROD/test/images/
+    ann_folder: ./dataset/UAV-ROD/test/annotations/
+    split: test
+    img_size: 1024
+    rect: False
+    stride: 32
+    pad: 0.0
+    debug_mode: False
+    max_samples: null
+    cache_images: False
+  shuffle: False
+  batch_size: 1
+  num_workers: 1
+  drop_last: False
+  collate_fn: default_collate_fn 
